@@ -1,50 +1,20 @@
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.Socket;
+import java.util.Scanner;
 
 public class Cliente {
-    public static void main(String[] args) {
-        try {
-            // Conectar ao servidor
-            Socket socket = new Socket("localhost", 12345);
-            System.out.println("Conectado ao servidor!");
+    public static void main(String args[]) throws IOException {
+        var cliente = new Socket("127.0.0.1", 12345);
+        var teclado = new Scanner(System.in);
+        var saida = new PrintStream(cliente.getOutputStream());
 
-            // Criar streams de entrada e saída
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-
-            // Criação de thread para escutar mensagens do servidor
-            Thread listener = new Thread(() -> {
-                try {
-                    String message;
-                    while ((message = in.readLine()) != null) {
-                        System.out.println("Servidor: " + message);
-                        if(message.equals("!sair")){
-                            socket.close();
-                            in.close();
-                            out.close();
-                        }
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            listener.start();
-
-            // Enviar mensagens para o servidor
-            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
-            String message;
-            while (true) {
-                message = userInput.readLine();
-                out.println(message);
-                if(message.equals("!sair")){
-                    socket.close();
-                    in.close();
-                    out.close();
-                }
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        while (teclado.hasNextLine()) {
+            saida.println(teclado.nextLine());
         }
+
+        saida.close();
+        teclado.close();
+        cliente.close();
     }
 }
